@@ -1,6 +1,9 @@
 from __future__ import print_function, division
 
 import scipy.misc, numpy as np, os, sys
+import skimage.transform as skt
+import imageio
+import PIL
 import random
 from coral import coral_numpy # , coral_pytorch
 # from color_transfer import color_transfer
@@ -18,10 +21,14 @@ def get_files(img_dir):
 
 def save_img(out_path, img):
     img = np.clip(img, 0, 255).astype(np.uint8)
-    scipy.misc.imsave(out_path, img)
+    #scipy.misc.imsave(out_path, img)
+    imageio.imwrite(out_path, img)
 
 def get_img(src):
-   img = scipy.misc.imread(src, mode='RGB')
+   #img = scipy.misc.imread(src, mode='RGB')
+   img = imageio.imread(src)
+   img = img[:,:,0:3]
+   print(img.shape)
    if not (len(img.shape) == 3 and img.shape[2] == 3):
        img = np.dstack((img,img,img))
    return img
@@ -45,7 +52,8 @@ def center_crop_to(img, H_target, W_target):
         H_rat, W_rat = H_target / height, W_target / width
         rat = max(H_rat, W_rat)
 
-        img = scipy.misc.imresize(img, rat, interp='bilinear')
+        #img = scipy.misc.imresize(img, rat, interp='bilinear')
+        img = skt.resize(img, (rat,rat),anti_aliasing=True,preserve_range=True)
         height, width = img.shape[0], img.shape[1]
 
     h_off = (height - H_target) // 2
@@ -64,7 +72,8 @@ def resize_to(img, resize=512):
         long_side = round(height / ratio)
         resize_shape = (long_side, resize, 3)
     
-    return scipy.misc.imresize(img, resize_shape, interp='bilinear')
+    #return scipy.misc.imresize(img, resize_shape, interp='bilinear')
+    return skt.resize(img, resize_shape,anti_aliasing=True,preserve_range=True)
 
 def get_img_crop(src, resize=512, crop=256):
     '''Get & resize image and center crop'''
